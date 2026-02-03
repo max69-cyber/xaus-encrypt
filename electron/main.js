@@ -7,7 +7,7 @@ async function createWindow(){
         height: 700
     })
 
-    await win.loadURL("http://localhost:5173")
+    await win.loadURL("http://localhost:7777")
 }
 
 app.whenReady().then(createWindow)
