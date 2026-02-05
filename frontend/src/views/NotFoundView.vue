@@ -15,13 +15,6 @@
 </template>
 
 <style scoped>
-  .not-found-container {
-    height: calc(100vh - 65px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .not-found-card {
     display: flex;
     flex-direction: column;

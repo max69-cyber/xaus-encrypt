@@ -5,11 +5,16 @@ import AppHeader from '@/components/AppHeader.vue'
 
 <template>
   <AppHeader />
-
-  <main class="container">
+  <main class="main-container">
     <RouterView />
   </main>
 </template>
 
-<style scoped>
+<style>
+  .main-container {
+    min-height: calc(100vh - 65px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 </style>

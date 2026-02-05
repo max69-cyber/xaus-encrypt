@@ -29,8 +29,8 @@ const logout = () => {
       </template>
 
       <template v-else>
-        <RouterLink class="button primary" :to="{ name: 'auth', query: { mode: 'sign-in' } }">Sign in</RouterLink>
-        <RouterLink class="button ghost" :to="{ name: 'auth' , query: { mode: 'register' } }">Register</RouterLink>
+        <RouterLink class="button primary" :to="{ name: 'sign-in' }">Sign in</RouterLink>
+        <RouterLink class="button ghost" :to="{ name: 'register' }">Register</RouterLink>
       </template>
     </div>
   </header>
@@ -60,7 +60,7 @@ const logout = () => {
  .controls-container {
    display: flex;
    align-items: center;
-   gap: 24px;
+   gap: 16px;
  }
 
  .link {

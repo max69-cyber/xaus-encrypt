@@ -9,9 +9,14 @@ const router = createRouter({
       redirect: '/encryptor',
     },
     {
-      path: '/auth',
-      name: 'auth',
-      component: () => import('../views/AuthView.vue'),
+      path: '/sign-in',
+      name: 'sign-in',
+      component: () => import('../views/SignInView.vue'),
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
     },
     {
       path: '/encryptor',
