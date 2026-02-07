@@ -28,6 +28,9 @@ export const decryptTextHandler = (req: Request, res: Response) => {
         const decrypted = decryptText(encrypted, password)
         res.json({ decrypted })
     } catch {
-        res.status(400).json({ error: "Wrong password or corrupted data" })
+        res.status(400).json({
+            code: "WRONG_PASSWORD_OR_CORRUPTED_DATA",
+            error: "Wrong password or corrupted data"
+        })
     }
 }

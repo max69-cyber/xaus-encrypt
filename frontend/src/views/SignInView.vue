@@ -2,6 +2,7 @@
   import { useRouter } from 'vue-router'
   import { useAuthStore } from '@/stores/auth.ts'
   import { ref } from 'vue'
+  import { authErrorMessages } from '@/types/authErrors.ts'
 
   const router = useRouter();
   const authStore = useAuthStore();
@@ -16,11 +17,12 @@
     isLoading.value = true;
 
     try {
-      // auth store sign in func
+      await authStore.signIn(email.value, password.value);
       await router.push('/encryptor');
     } catch (err) {
-      error.value = 'Error while signing in.';
-      console.error(err);
+      const code = (err as { code: string })?.code
+      console.error(code);
+      error.value = authErrorMessages[code!] ?? 'Something went wrong'
     } finally {
       isLoading.value = false;
     }
@@ -30,12 +32,18 @@
 <template>
   <form class="sign-in-form" @submit.prevent="login">
     <h1>Sign in</h1>
+
     <input v-model="email" type="email" placeholder="Email" />
     <input v-model="password" type="password" placeholder="Password" />
-    <p v-if="error" class="error">{{ error }}</p>
+
+    <p class="error">
+      {{ error || '\u00A0' }}
+    </p>
+
     <button class="primary-button" :disabled="isLoading">
       {{ isLoading ? "Signing in..." : "Sign in" }}
     </button>
+
     <p class="switch">
       No account?
       <RouterLink :to="{ name: 'register' }">Register</RouterLink>
@@ -88,6 +96,7 @@
     color: #e54848;
     font-size: 14px;
     text-align: center;
+    min-height: 18px;
   }
 
   .switch {

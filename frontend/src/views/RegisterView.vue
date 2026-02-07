@@ -2,6 +2,7 @@
   import { useRouter } from 'vue-router'
   import { useAuthStore } from '@/stores/auth.ts'
   import { ref } from 'vue'
+  import { authErrorMessages } from '@/types/authErrors.ts'
 
   const router = useRouter();
   const authStore = useAuthStore();
@@ -23,14 +24,11 @@
     isLoading.value = true;
 
     try {
-      // auth store register func
-      if (error.value) {
-        return;
-      }
+      await authStore.register(email.value, password.value);
       await router.push('/encryptor');
     } catch (err) {
-      error.value = 'Error while registration.';
-      console.error(err);
+      const code = (err as { code: string })?.code
+      error.value = authErrorMessages[code!] ?? 'Something went wrong'
     } finally {
       isLoading.value = false;
     }
@@ -45,7 +43,9 @@
     <input v-model="password" type="password" placeholder="Password" />
     <input v-model="confirmPassword" type="password" placeholder="Confirm password" />
 
-    <p v-if="error" class="error">{{ error }}</p>
+    <p class="error">
+      {{ error || '\u00A0' }}
+    </p>
 
     <button class="primary-button" :disabled="isLoading">
       {{ isLoading ? "Registering..." : "Register" }}
@@ -103,6 +103,7 @@
     color: #e54848;
     font-size: 14px;
     text-align: center;
+    min-height: 18px;
   }
 
   .switch {

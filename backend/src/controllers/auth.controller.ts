@@ -21,7 +21,10 @@ export const register = async (req: Request, res: Response) => {
         "SELECT id FROM users WHERE email = ?"
     ).get(email)
 
-    if (exists) return res.status(409).json({ error: "User exists" })
+    if (exists) return res.status(409).json({
+        code: "USER_EXISTS",
+        error: "User exists"
+    })
 
     const hash = await hashPassword(password)
 
@@ -39,10 +42,16 @@ export const login = async (req: Request, res: Response) => {
         .prepare("SELECT * FROM users WHERE email = ?")
         .get(email) as User | undefined
 
-    if (!user) return res.status(401).json({ error: "Invalid credentials" })
+    if (!user) return res.status(401).json({
+        code: "USER_NOT_FOUND",
+        error: "Invalid credentials",
+    })
 
     const ok = await verifyPassword(password, user.password_hash)
-    if (!ok) return res.status(401).json({ error: "Invalid credentials" })
+    if (!ok) return res.status(401).json({
+        code: "WRONG_PASSWORD",
+        error: "Invalid credentials"
+    })
 
     console.log('working')
     res.json({ token: createToken(user.id) })
