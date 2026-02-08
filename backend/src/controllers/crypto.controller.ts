@@ -4,13 +4,16 @@ import { database } from "../database"
 import {AuthRequest} from "../middleware/auth.middleware";
 
 export const encryptTextHandler = (req: AuthRequest, res: Response) => {
-    const { text, password } = req.body
+    const { text, passphrase } = req.body
     const userId = req.userId!
 
-    if (!text || !password)
-        return res.status(400).json({ error: "Missing data" })
+    if (!text || !passphrase)
+        return res.status(400).json({
+            code: "MISSING_DATA",
+            error: "Missing data"
+        })
 
-    const encrypted = encryptText(text, password)
+    const encrypted = encryptText(text, passphrase)
 
     database.prepare(`
         INSERT INTO encrypted_texts
@@ -22,10 +25,10 @@ export const encryptTextHandler = (req: AuthRequest, res: Response) => {
 }
 
 export const decryptTextHandler = (req: Request, res: Response) => {
-    const { encrypted, password } = req.body
+    const { encrypted, passphrase } = req.body
 
     try {
-        const decrypted = decryptText(encrypted, password)
+        const decrypted = decryptText(encrypted, passphrase)
         res.json({ decrypted })
     } catch {
         res.status(400).json({

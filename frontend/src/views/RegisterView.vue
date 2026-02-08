@@ -27,8 +27,8 @@
       await authStore.register(email.value, password.value);
       await router.push('/encryptor');
     } catch (err) {
-      const code = (err as { code: string })?.code
-      error.value = authErrorMessages[code!] ?? 'Something went wrong'
+      const code = (err as { code: string })?.code;
+      error.value = authErrorMessages[code!] ?? 'Something went wrong';
     } finally {
       isLoading.value = false;
     }

@@ -1,31 +1,36 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth.ts'
 import { ref } from 'vue'
+import UserDropdown from '@/components/UserDropdown.vue'
 
 const authStore = useAuthStore();
 
 const isProfileDropdownOpened = ref<boolean>(false);
 
-const openProfileDropdown = () => {
+const toggleDropdown = () => {
   isProfileDropdownOpened.value = !isProfileDropdownOpened.value;
 };
 
-const logout = () => {
-  //authStore.logout();
+const closeDropdown = () => {
   isProfileDropdownOpened.value = false;
-}
+};
 </script>
 
 <template>
   <header class="header">
-    <RouterLink class="logo" :to="{ name: 'encryptor' }">🔑</RouterLink>
+    <RouterLink class="logo" :to="{ name: 'encryptor' }">🔑<span/>Encryptor</RouterLink>
 
     <div class="controls-container">
       <template v-if="authStore.isLoggedIn">
         <RouterLink class="link" :to="{ name: 'encryptor' }">Encryptor</RouterLink>
+        <RouterLink class="link" :to="{ name: 'decryptor' }">Decryptor</RouterLink>
         <RouterLink class="link" :to="{ name: 'history' }">History</RouterLink>
 
-        <div class="avatar" @click="openProfileDropdown">🤖</div>
+        <div class="avatar" @click="toggleDropdown">🤖</div>
+        <UserDropdown
+          v-if="isProfileDropdownOpened"
+          @close="closeDropdown"
+        />
       </template>
 
       <template v-else>

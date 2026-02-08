@@ -2,31 +2,30 @@
 import { computed, ref } from 'vue'
 import { useCryptoStore } from '@/stores/crypto.ts'
 import { cryptoErrorMessages } from '@/types/cryptoErrors.ts'
-import ShowPasswordIcon from '@/icons/ShowPasswordIcon.vue'
 import HidePasswordButton from '@/icons/HidePasswordButton.vue'
+import ShowPasswordIcon from '@/icons/ShowPasswordIcon.vue'
 
 const cryptoStore = useCryptoStore();
 
-const text = ref<string>('');
-const passphrase = ref<string>('');
 const encrypted = ref<string>('');
+const passphrase = ref<string>('');
+const decrypted = ref<string>('');
 const isLoading = ref<boolean>(false);
 const error = ref<string>('');
 
 const isShowPassphrase = ref<boolean>(true);
-const file = ref<File | null>(null);
 
-const canEncrypt = computed(() =>
+const canDecrypt = computed(() =>
   passphrase.value.trim() &&
-  (text.value.trim() || file.value)
+  (encrypted.value.trim())
 );
 
-const encrypt = async () => {
+const decrypt = async () => {
   error.value = '';
   isLoading.value = true;
 
   try {
-    encrypted.value = await cryptoStore.encryptText(text.value, passphrase.value);
+    decrypted.value = await cryptoStore.decryptText(encrypted.value, passphrase.value);
   } catch (err) {
     const code = (err as { code: string })?.code;
     error.value = cryptoErrorMessages[code!] ?? 'Something went wrong';
@@ -39,7 +38,7 @@ const encrypt = async () => {
 <template>
   <div class="encrypt-card">
     <div class="card-header">
-      <h2>Text Encryption</h2>
+      <h2>Text Decryption</h2>
       <span class="hint">Choose encryption type and run</span>
     </div>
 
@@ -61,12 +60,11 @@ const encrypt = async () => {
               type="button"
               class="icon-btn"
               @click="isShowPassphrase = !isShowPassphrase"
+              :aria-label="isShowPassphrase ? 'Hide passphrase' : 'Show passphrase'"
             >
               <HidePasswordButton v-if="isShowPassphrase" />
               <ShowPasswordIcon v-else />
             </button>
-
-            <button type="button" class="generate-btn">Generate</button>
           </div>
         </div>
       </div>
@@ -75,20 +73,10 @@ const encrypt = async () => {
     <div class="text-grid">
       <div class="input-block">
         <div class="input-header">
-          <span>Data to encrypt</span>
-
-          <label class="file-btn">
-            Upload file
-            <input type="file" hidden @change="file = $event.target.files?.[0] || null" />
-          </label>
+          <span>Data to decrypt</span>
         </div>
 
-        <textarea v-if="!file" v-model="text" placeholder="Enter text to encrypt here" />
-
-        <div v-else class="file-preview">
-          <span>{{ file.name }}</span>
-          <button @click="file = null">Remove</button>
-        </div>
+        <textarea v-model="encrypted" placeholder="Enter text to decrypt here" />
       </div>
 
       <div class="input-block">
@@ -98,8 +86,8 @@ const encrypt = async () => {
 
         <textarea
           disabled
-          :value="encrypted"
-          placeholder="Encrypted value will appear here"
+          :value="decrypted"
+          placeholder="Decrypted value will appear here"
         />
       </div>
     </div>
@@ -107,11 +95,11 @@ const encrypt = async () => {
     <div class="action">
       <button
         class="primary-btn"
-        :disabled="!canEncrypt || isLoading"
-        @click="encrypt"
-      >Encrypt</button>
+        :disabled="!canDecrypt || isLoading"
+        @click="decrypt"
+      >Decrypt</button>
 
-      <p v-if="!error" class="helper">Enter input text and a passphrase to enable encryption.</p>
+      <p v-if="!error" class="helper">Enter input text and a passphrase to enable decryption.</p>
 
       <p v-else class="error">{{ error }}</p>
     </div>
@@ -180,10 +168,6 @@ select {
   background: white;
 }
 
-.generate-btn:hover {
-  background: #e5e7eb;
-}
-
 .passphrase-input {
   position: relative;
   display: flex;
@@ -246,36 +230,6 @@ select {
   font-size: 14px;
   color: #374151;
   font-weight: 500;
-}
-
-.file-btn {
-  font-size: 13px;
-  cursor: pointer;
-  color: #2563eb;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.file-btn:hover {
-  text-decoration: underline;
-}
-
-.file-preview {
-  border: 1px dashed #d1d5db;
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.file-preview button {
-  background: none;
-  border: none;
-  color: #dc2626;
-  cursor: pointer;
 }
 
 textarea {

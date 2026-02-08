@@ -6,7 +6,7 @@ import axios, { isAxiosError } from 'axios'
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'));
 
-  const isLoggedIn = computed(() => false);
+  const isLoggedIn = computed(() => !!token.value);
 
   const setToken = (newToken: string | null) => {
     token.value = newToken;
