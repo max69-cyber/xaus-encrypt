@@ -37,3 +37,20 @@ export const decryptTextHandler = (req: Request, res: Response) => {
         })
     }
 }
+
+export const getHistoryHandler = (req: AuthRequest, res: Response) => {
+    const userId = req.userId!
+
+    const rows = database.prepare(`
+    SELECT
+      id,
+      encrypted_text,
+      algorithm,
+      created_at
+    FROM encrypted_texts
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+  `).all(userId)
+
+    res.json(rows)
+}
