@@ -34,6 +34,10 @@ const encrypt = async () => {
     isLoading.value = false;
   }
 };
+
+const generatePassphrase = () => {
+  passphrase.value = cryptoStore.generatePassphrase(25);
+}
 </script>
 
 <template>
@@ -66,7 +70,7 @@ const encrypt = async () => {
               <ShowPasswordIcon v-else />
             </button>
 
-            <button type="button" class="generate-btn">Generate</button>
+            <button type="button" class="generate-btn" @click="generatePassphrase">Generate</button>
           </div>
         </div>
       </div>

@@ -42,7 +42,20 @@ export const useCryptoStore = defineStore('crypto', () => {
     }
   };
 
+  const generatePassphrase = (length: number) => {
+    const charset =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_-+=';
+
+    const values = new Uint32Array(length);
+    crypto.getRandomValues(values);
+
+    return Array.from(values)
+      .map(v => charset[v % charset.length])
+      .join('');
+  };
+
   return {
+    generatePassphrase,
     encryptText,
     decryptText,
   };
