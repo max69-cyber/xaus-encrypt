@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
 import { http } from '@/api/api.ts'
+import type { HistoryItem } from '@/types/types.ts'
 
 export const useCryptoStore = defineStore('crypto', () => {
   const encryptText = async (
@@ -42,6 +43,20 @@ export const useCryptoStore = defineStore('crypto', () => {
     }
   };
 
+  const getHistory = async (): Promise<HistoryItem[]> => {
+    try {
+      const res = await http.get('/crypto/history');
+      console.log(res);
+
+      return res.data;
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw { code: 'UNKNOWN' };
+    }
+  };
+
   const generatePassphrase = (length: number) => {
     const charset =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_-+=';
@@ -58,5 +73,6 @@ export const useCryptoStore = defineStore('crypto', () => {
     generatePassphrase,
     encryptText,
     decryptText,
+    getHistory,
   };
 });
