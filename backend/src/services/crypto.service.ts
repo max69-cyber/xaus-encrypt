@@ -32,3 +32,38 @@ export function decryptText(data: string, password: string): string {
 
     return decrypted
 }
+
+
+export function encryptFileBuffer(
+    buffer: Buffer,
+    password: string
+): Buffer {
+    const iv = crypto.randomBytes(IV_LENGTH)
+    const key = getKeyFromPassword(password)
+
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+
+    const encrypted = Buffer.concat([
+        cipher.update(buffer),
+        cipher.final()
+    ])
+
+    return Buffer.concat([iv, encrypted])
+}
+
+export function decryptFileBuffer(
+    buffer: Buffer,
+    password: string
+): Buffer {
+    const iv = buffer.subarray(0, IV_LENGTH)
+    const encryptedData = buffer.subarray(IV_LENGTH)
+
+    const key = getKeyFromPassword(password)
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+
+    return Buffer.concat([
+        decipher.update(encryptedData),
+        decipher.final()
+    ])
+}

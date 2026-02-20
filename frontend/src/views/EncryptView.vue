@@ -83,12 +83,14 @@ const generatePassphrase = () => {
 
           <label class="file-btn">
             Upload file
+<!--            TODO: make it better-->
             <input type="file" hidden @change="file = $event.target.files?.[0] || null" />
           </label>
         </div>
 
         <textarea v-if="!file" v-model="text" placeholder="Enter text to encrypt here" />
 
+<!--        TODO: rework list for 1 element or add function to encrypt multiple files -->
         <div v-else class="file-preview">
           <span>{{ file.name }}</span>
           <button @click="file = null">Remove</button>
