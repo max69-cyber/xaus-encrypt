@@ -1,8 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
-require("ts-node/register");
-require("../backend/src/index.ts");
+require("../backend/dist/index.js");
 
 async function createWindow() {
   const win = new BrowserWindow({
