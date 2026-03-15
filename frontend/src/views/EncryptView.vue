@@ -1,43 +1,49 @@
-<script setup lang="ts">
-import { computed, ref } from 'vue'
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
 import { useCryptoStore } from '@/stores/crypto.ts'
 import { cryptoErrorMessages } from '@/types/cryptoErrors.ts'
 import ShowPasswordIcon from '@/icons/ShowPasswordIcon.vue'
 import HidePasswordButton from '@/icons/HidePasswordButton.vue'
 
-const cryptoStore = useCryptoStore();
+const cryptoStore = useCryptoStore()
 
-const text = ref<string>('');
-const passphrase = ref<string>('');
-const encrypted = ref<string>('');
-const isLoading = ref<boolean>(false);
-const error = ref<string>('');
+const text = ref<string>('')
+const passphrase = ref<string>('')
+const algorithm = ref<string>('aes-256-cbc')
+const encrypted = ref<string>('')
+const isLoading = ref<boolean>(false)
+const error = ref<string>('')
 
-const isShowPassphrase = ref<boolean>(true);
-const file = ref<File | null>(null);
+const isShowPassphrase = ref<boolean>(true)
+const file = ref<File | null>(null)
 
-const canEncrypt = computed(() =>
-  passphrase.value.trim() &&
-  (text.value.trim() || file.value)
-);
+const canEncrypt = computed(() => passphrase.value.trim() && (text.value.trim() || file.value))
 
 const encrypt = async () => {
-  error.value = '';
-  isLoading.value = true;
+  error.value = ''
+  isLoading.value = true
 
   try {
-    encrypted.value = await cryptoStore.encryptText(text.value, passphrase.value);
+    if (file.value) {
+      await cryptoStore.encryptFile(file.value, passphrase.value)
+    } else {
+      encrypted.value = await cryptoStore.encryptText(text.value, passphrase.value, algorithm.value)
+    }
   } catch (err) {
-    const code = (err as { code: string })?.code;
-    error.value = cryptoErrorMessages[code!] ?? 'Something went wrong';
+    const code = (err as { code: string })?.code
+    error.value = cryptoErrorMessages[code!] ?? 'Something went wrong'
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 const generatePassphrase = () => {
-  passphrase.value = cryptoStore.generatePassphrase(25);
+  passphrase.value = cryptoStore.generatePassphrase(25)
 }
+
+watch(file, () => {
+  if (file.value) text.value = ''
+})
 </script>
 
 <template>
@@ -50,27 +56,28 @@ const generatePassphrase = () => {
     <div class="setup-grid">
       <div class="field">
         <label>Encryption type</label>
-        <select>
-          <option>aes</option>
+        <select v-model="algorithm">
+          <option value="aes-256-cbc">AES-256-CBC</option>
+          <option value="chacha20-poly1305">ChaCha20-Poly1305</option>
         </select>
       </div>
 
       <div class="field">
         <label>Passphrase</label>
         <div class="passphrase-input">
-          <input v-model="passphrase" :type="isShowPassphrase ? 'text' : 'password'" placeholder="Passphrase" />
+          <input
+            v-model="passphrase"
+            :type="isShowPassphrase ? 'text' : 'password'"
+            placeholder="Passphrase"
+          />
 
           <div class="input-actions">
-            <button
-              type="button"
-              class="icon-btn"
-              @click="isShowPassphrase = !isShowPassphrase"
-            >
+            <button class="icon-btn" type="button" @click="isShowPassphrase = !isShowPassphrase">
               <HidePasswordButton v-if="isShowPassphrase" />
               <ShowPasswordIcon v-else />
             </button>
 
-            <button type="button" class="generate-btn" @click="generatePassphrase">Generate</button>
+            <button class="generate-btn" type="button" @click="generatePassphrase">Generate</button>
           </div>
         </div>
       </div>
@@ -83,14 +90,12 @@ const generatePassphrase = () => {
 
           <label class="file-btn">
             Upload file
-<!--            TODO: make it better-->
-            <input type="file" hidden @change="file = $event.target.files?.[0] || null" />
+            <input hidden type="file" @change="file = $event.target.files?.[0] || null" />
           </label>
         </div>
 
         <textarea v-if="!file" v-model="text" placeholder="Enter text to encrypt here" />
 
-<!--        TODO: rework list for 1 element or add function to encrypt multiple files -->
         <div v-else class="file-preview">
           <span>{{ file.name }}</span>
           <button @click="file = null">Remove</button>
@@ -102,20 +107,14 @@ const generatePassphrase = () => {
           <span>Result</span>
         </div>
 
-        <textarea
-          disabled
-          :value="encrypted"
-          placeholder="Encrypted value will appear here"
-        />
+        <textarea :value="encrypted" disabled placeholder="Encrypted value will appear here" />
       </div>
     </div>
 
     <div class="action">
-      <button
-        class="primary-btn"
-        :disabled="!canEncrypt || isLoading"
-        @click="encrypt"
-      >Encrypt</button>
+      <button :disabled="!canEncrypt || isLoading" class="primary-btn" @click="encrypt">
+        Encrypt
+      </button>
 
       <p v-if="!error" class="helper">Enter input text and a passphrase to enable encryption.</p>
 

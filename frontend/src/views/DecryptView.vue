@@ -1,38 +1,56 @@
-<script setup lang="ts">
-import { computed, ref } from 'vue'
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
 import { useCryptoStore } from '@/stores/crypto.ts'
 import { cryptoErrorMessages } from '@/types/cryptoErrors.ts'
 import HidePasswordButton from '@/icons/HidePasswordButton.vue'
 import ShowPasswordIcon from '@/icons/ShowPasswordIcon.vue'
 
-const cryptoStore = useCryptoStore();
+const cryptoStore = useCryptoStore()
 
-const encrypted = ref<string>('');
-const passphrase = ref<string>('');
-const decrypted = ref<string>('');
-const isLoading = ref<boolean>(false);
-const error = ref<string>('');
+const encrypted = ref<string>('')
+const file = ref<File | null>(null)
+const passphrase = ref<string>('')
+const algorithm = ref<string>('aes-256-cbc')
+const decrypted = ref<string>('')
+const isLoading = ref<boolean>(false)
+const error = ref<string>('')
 
-const isShowPassphrase = ref<boolean>(true);
+const isShowPassphrase = ref<boolean>(true)
 
-const canDecrypt = computed(() =>
-  passphrase.value.trim() &&
-  (encrypted.value.trim())
-);
+watch(file, () => {
+  if (file.value) {
+    encrypted.value = ''
+  }
+})
+
+const canDecrypt = computed(() => passphrase.value.trim() && (encrypted.value.trim() || file.value))
 
 const decrypt = async () => {
-  error.value = '';
-  isLoading.value = true;
+  error.value = ''
+  isLoading.value = true
 
   try {
-    decrypted.value = await cryptoStore.decryptText(encrypted.value, passphrase.value);
+    if (file.value) {
+      await cryptoStore.decryptFile(file.value, passphrase.value)
+    } else {
+      decrypted.value = await cryptoStore.decryptText(
+        encrypted.value,
+        passphrase.value,
+        algorithm.value,
+      )
+    }
   } catch (err) {
-    const code = (err as { code: string })?.code;
-    error.value = cryptoErrorMessages[code!] ?? 'Something went wrong';
+    const code = (err as { code: string })?.code
+    error.value = cryptoErrorMessages[code!] ?? 'Something went wrong'
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
+
+const removeFile = () => {
+  file.value = null
+  decrypted.value = ''
+}
 </script>
 
 <template>
@@ -45,22 +63,27 @@ const decrypt = async () => {
     <div class="setup-grid">
       <div class="field">
         <label>Encryption type</label>
-        <select>
-          <option>aes</option>
+        <select v-model="algorithm">
+          <option value="aes-256-cbc">AES‑256‑CBC</option>
+          <option value="chacha20-poly1305">ChaCha20‑Poly1305</option>
         </select>
       </div>
 
       <div class="field">
         <label>Passphrase</label>
         <div class="passphrase-input">
-          <input v-model="passphrase" :type="isShowPassphrase ? 'text' : 'password'" placeholder="Passphrase" />
+          <input
+            v-model="passphrase"
+            :type="isShowPassphrase ? 'text' : 'password'"
+            placeholder="Passphrase"
+          />
 
           <div class="input-actions">
             <button
-              type="button"
-              class="icon-btn"
-              @click="isShowPassphrase = !isShowPassphrase"
               :aria-label="isShowPassphrase ? 'Hide passphrase' : 'Show passphrase'"
+              class="icon-btn"
+              type="button"
+              @click="isShowPassphrase = !isShowPassphrase"
             >
               <HidePasswordButton v-if="isShowPassphrase" />
               <ShowPasswordIcon v-else />
@@ -74,9 +97,19 @@ const decrypt = async () => {
       <div class="input-block">
         <div class="input-header">
           <span>Data to decrypt</span>
+
+          <label class="file-btn">
+            Upload file
+            <input hidden type="file" @change="file = $event.target.files?.[0] || null" />
+          </label>
         </div>
 
-        <textarea v-model="encrypted" placeholder="Enter text to decrypt here" />
+        <textarea v-if="!file" v-model="encrypted" placeholder="Enter text to decrypt here" />
+
+        <div v-else class="file-preview">
+          <span>{{ file.name }}</span>
+          <button @click="removeFile">Remove</button>
+        </div>
       </div>
 
       <div class="input-block">
@@ -84,20 +117,14 @@ const decrypt = async () => {
           <span>Result</span>
         </div>
 
-        <textarea
-          disabled
-          :value="decrypted"
-          placeholder="Decrypted value will appear here"
-        />
+        <textarea :value="decrypted" disabled placeholder="Decrypted value will appear here" />
       </div>
     </div>
 
     <div class="action">
-      <button
-        class="primary-btn"
-        :disabled="!canDecrypt || isLoading"
-        @click="decrypt"
-      >Decrypt</button>
+      <button :disabled="!canDecrypt || isLoading" class="primary-btn" @click="decrypt">
+        Decrypt
+      </button>
 
       <p v-if="!error" class="helper">Enter input text and a passphrase to enable decryption.</p>
 
@@ -272,5 +299,35 @@ textarea[disabled] {
   font-size: 14px;
   text-align: center;
   min-height: 18px;
+}
+
+.file-btn {
+  font-size: 13px;
+  cursor: pointer;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-btn:hover {
+  text-decoration: underline;
+}
+
+.file-preview {
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-preview button {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
 }
 </style>
