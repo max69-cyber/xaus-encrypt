@@ -90,7 +90,11 @@ watch(file, () => {
 
           <label class="file-btn">
             Upload file
-            <input hidden type="file" @change="file = $event.target.files?.[0] || null" />
+            <input
+              hidden
+              type="file"
+              @change="file = ($event.target as HTMLInputElement)?.files?.[0] || null"
+            />
           </label>
         </div>
 
