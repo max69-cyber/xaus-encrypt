@@ -27,7 +27,7 @@
   },
   "build": {
     "appId": "com.xaus.encrypt",
-    "productName": "Encrypter",
+    "productName": "fatEncryptor",
     "directories": {
       "output": "dist-electron"
     },

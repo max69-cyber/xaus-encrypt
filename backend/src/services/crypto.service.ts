@@ -4,6 +4,8 @@ const DEFAULT_ALGORITHM = "aes-256-cbc";
 const IV_LENGTH = 16;
 const CHACHA_NONCE_LENGTH = 12;
 const CHACHA_TAG_LENGTH = 16;
+const GCM_IV_LENGTH = 12;
+const GCM_TAG_LENGTH = 16;
 
 function getKeyFromPassword(password: string) {
   return crypto.createHash("sha256").update(password).digest();
@@ -31,6 +33,28 @@ export function encryptText(
 
     return [
       nonce.toString("base64"),
+      tag.toString("base64"),
+      encrypted.toString("base64"),
+    ].join(":");
+  }
+
+  if (algorithm === "aes-256-gcm") {
+    const iv = crypto.randomBytes(GCM_IV_LENGTH);
+    const key = getKeyFromPassword(password);
+
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv, {
+      authTagLength: GCM_TAG_LENGTH,
+    });
+
+    const encrypted = Buffer.concat([
+      cipher.update(text, "utf8"),
+      cipher.final(),
+    ]);
+
+    const tag = cipher.getAuthTag();
+
+    return [
+      iv.toString("base64"),
       tag.toString("base64"),
       encrypted.toString("base64"),
     ].join(":");
@@ -65,6 +89,28 @@ export function decryptText(
       authTagLength: CHACHA_TAG_LENGTH,
     });
 
+    decipher.setAuthTag(tag);
+
+    const decrypted = Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final(),
+    ]);
+
+    return decrypted.toString("utf8");
+  }
+
+  if (algorithm === "aes-256-gcm") {
+    const [ivBase64, tagBase64, encryptedBase64] = data.split(":");
+
+    const iv = Buffer.from(ivBase64, "base64");
+    const tag = Buffer.from(tagBase64, "base64");
+    const encrypted = Buffer.from(encryptedBase64, "base64");
+
+    const key = getKeyFromPassword(password);
+
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv, {
+      authTagLength: GCM_TAG_LENGTH,
+    });
     decipher.setAuthTag(tag);
 
     const decrypted = Buffer.concat([

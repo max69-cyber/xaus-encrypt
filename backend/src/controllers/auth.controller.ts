@@ -1,58 +1,61 @@
-import { Request, Response } from "express"
-import jwt from "jsonwebtoken"
-import { database } from "../database"
-import { hashPassword, verifyPassword } from "../services/hash.service"
-import {User} from "../models/user.model";
+import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { database } from "../database";
+import { hashPassword, verifyPassword } from "../services/hash.service";
+import { User } from "../models/user.model";
 
 const createToken = (userId: number) => {
-    const JWT_SECRET = process.env.JWT_SECRET
+  const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
-    if (!JWT_SECRET) {
-        throw new Error("jwt secret not found")
-    }
+  if (!JWT_SECRET) {
+    throw new Error("jwt secret not found");
+  }
 
-    return jwt.sign({ userId }, JWT_SECRET)
-}
+  return jwt.sign({ userId }, JWT_SECRET);
+};
 
 export const register = async (req: Request, res: Response) => {
-    const { email, password } = req.body
+  const { email, password } = req.body;
 
-    const exists = database.prepare(
-        "SELECT id FROM users WHERE email = ?"
-    ).get(email)
+  const exists = database
+    .prepare("SELECT id FROM users WHERE email = ?")
+    .get(email) as unknown as User | undefined;
 
-    if (exists) return res.status(409).json({
-        code: "USER_EXISTS",
-        error: "User exists"
-    })
+  if (exists)
+    return res.status(409).json({
+      code: "USER_EXISTS",
+      error: "User exists",
+    });
 
-    const hash = await hashPassword(password)
+  const hash = await hashPassword(password);
 
-    const result = database.prepare(
-        "INSERT INTO users (email, password_hash) VALUES (?, ?)"
-    ).run(email, hash)
+  const result = database
+    .prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)")
+    .run(email, hash);
 
-    res.json({ token: createToken(Number(result.lastInsertRowid)) })
-}
+  res.json({ token: createToken(Number(result.lastInsertRowid)) });
+};
 
 export const login = async (req: Request, res: Response) => {
-    const { email, password } = req.body
+  const { email, password } = req.body;
 
-    const user = database
-        .prepare("SELECT * FROM users WHERE email = ?")
-        .get(email) as User | undefined
+  const user = database
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(email) as unknown as User | undefined;
 
-    if (!user) return res.status(401).json({
-        code: "USER_NOT_FOUND",
-        error: "Invalid credentials",
-    })
+  if (!user)
+    return res.status(401).json({
+      code: "USER_NOT_FOUND",
+      error: "Invalid credentials",
+    });
 
-    const ok = await verifyPassword(password, user.password_hash)
-    if (!ok) return res.status(401).json({
-        code: "WRONG_PASSWORD",
-        error: "Invalid credentials"
-    })
+  const ok = await verifyPassword(password, user.password_hash);
+  if (!ok)
+    return res.status(401).json({
+      code: "WRONG_PASSWORD",
+      error: "Invalid credentials",
+    });
 
-    console.log('working')
-    res.json({ token: createToken(user.id) })
-}
+  console.log("working");
+  res.json({ token: createToken(user.id) });
+};

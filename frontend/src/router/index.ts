@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.ts'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
@@ -48,12 +48,12 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       redirect: '/not-found',
-    }
+    },
   ],
-});
+})
 
 router.beforeEach((to) => {
-  const authStore = useAuthStore();
+  const authStore = useAuthStore()
 
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     return {
@@ -61,6 +61,6 @@ router.beforeEach((to) => {
       query: { redirect: to.fullPath },
     }
   }
-});
+})
 
-export default router;
+export default router

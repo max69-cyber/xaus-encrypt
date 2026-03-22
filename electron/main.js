@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
+process.env.DB_PATH = app.getPath("userData");
 require("../backend/dist/index.js");
 
 async function createWindow() {

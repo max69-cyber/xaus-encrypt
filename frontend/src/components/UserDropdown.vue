@@ -1,15 +1,15 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
-const emit = defineEmits(['close']);
-const authStore = useAuthStore();
+const emit = defineEmits(['close'])
+const authStore = useAuthStore()
 
 const logout = () => {
-  authStore.logout();
-  emit('close');
-  router.push('/sign-in');
-};
+  authStore.logout()
+  emit('close')
+  router.push({ name: 'sign-in' })
+}
 </script>
 
 <template>

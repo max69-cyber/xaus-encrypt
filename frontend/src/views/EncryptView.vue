@@ -58,7 +58,8 @@ watch(file, () => {
         <label>Encryption type</label>
         <select v-model="algorithm">
           <option value="aes-256-cbc">AES-256-CBC</option>
-          <option value="chacha20-poly1305">ChaCha20-Poly1305</option>
+          <!--          <option value="chacha20-poly1305">ChaCha20-Poly1305</option>-->
+          <option value="aes-256-gcm">AES-256-GCM</option>
         </select>
       </div>
 
